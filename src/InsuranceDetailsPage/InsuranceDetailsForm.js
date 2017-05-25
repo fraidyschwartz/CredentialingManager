@@ -45,7 +45,7 @@ export default class InsuranceDetailsForm extends React.Component {
                 <FormGroup>
                     <ControlLabel>Facilities</ControlLabel>  
                     {this.props.facilities.map(f => <InsuranceFacilityCheckbox key={f.facilityId} facility={f} 
-                        checkboxHandler={this.props.checkboxHandler}/>)}
+                        checkboxHandler={this.props.checkboxHandler}  disableFormControls={this.props.disableFormControls}/>)}
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Notes</ControlLabel>

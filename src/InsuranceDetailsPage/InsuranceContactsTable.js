@@ -131,7 +131,7 @@ export default class InsuranceContactsTable extends React.Component {
                             id="test-table-xls-button"
                             className="btn"
                             table="insuranceContactsTable"
-                            filename={this.props.insurance + "Contacts"}
+                            filename="InsuranceContacts"
                             sheet="insuranceContactsTable"
                             buttonText="Export to Excel"/>
                 </div>

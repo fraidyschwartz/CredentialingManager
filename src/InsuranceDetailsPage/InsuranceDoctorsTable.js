@@ -18,7 +18,7 @@ export default class InsuranceDoctorsTable extends React.Component {
                 notes: "",
                 applicationStatusHistory: []
             },
-            insurances: [],
+            doctors: [],
             applicationStatuses: [],
             selectedApplicationStatus: "",
             selectedRow: null,
@@ -33,9 +33,9 @@ export default class InsuranceDoctorsTable extends React.Component {
     }
 
     async componentDidMount() {
-        let insurances = await axios.get('/api/insurances/getinsurancedoctors?insuranceId=' + this.props.insuranceId);
+        let doctors = await axios.get('/api/insurances/getinsurancedoctors?insuranceId=' + this.props.insuranceId);
         let applicationStatuses = await axios.get('/api/doctors/allapplicationstatuses');
-        this.setState({insurances: insurances.data, applicationStatuses: applicationStatuses.data});
+        this.setState({doctors: doctors.data, applicationStatuses: applicationStatuses.data});
     }   
 
     showEditor(column, insuranceDoctor) {
@@ -98,8 +98,8 @@ export default class InsuranceDoctorsTable extends React.Component {
     async onBlur() {
         if(this.state.anyChanges) {
             await axios.post('/api/doctors/editdoctorinsurance', this.state.insuranceDoctor);
-            let insurances = await axios.get('/api/insurances/getinsurancedoctors?insuranceId=' + this.props.insuranceId);
-            this.setState({insurances: insurances.data});
+            let doctors = await axios.get('/api/insurances/getinsurancedoctors?insuranceId=' + this.props.insuranceId);
+            this.setState({doctors: doctors.data});
         }
     }
 
@@ -126,7 +126,7 @@ export default class InsuranceDoctorsTable extends React.Component {
                             id="test-table-xls-button"
                             className="btn"
                             table="insuranceDoctorsTable"
-                            filename={this.state.insurance + "Doctors"}   
+                            filename="InsuranceDoctors"
                             sheet="insuranceDoctorsTable"
                             buttonText="Export to Excel"/>
                 </div>
@@ -141,8 +141,8 @@ export default class InsuranceDoctorsTable extends React.Component {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.state.insurances.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
-                            this.state.insurances.map(i => this.createInsuranceDoctorRow(i))}
+                        {this.state.doctors.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
+                            this.state.doctors.map(i => this.createInsuranceDoctorRow(i))}
                     </tbody>
                 </table>
             </div>
