@@ -3,7 +3,7 @@ import './App.css';
 import Doctors from './Doctors';
 import Insurances from './Insurances';
 import DoctorDetailsContainer from './DoctorDetailsPage/DoctorDetailsContainer';
-import InsuranceDetailsContainer from './InsuranceDetailsPage/InsuranceDetailsContainer';
+import InsuranceDetailsPage from './InsuranceDetailsPage/InsuranceDetailsPage';
 import chemedLogo from './Chemed-logo.jpg';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
@@ -29,7 +29,7 @@ class App extends Component {
           <Route path="/Doctors" component={Doctors}/>
           <Route path="/Insurances" component={Insurances}/>
           <Route path="/DoctorDetails/:doctorId" component={DoctorDetailsContainer}/>
-          <Route path="/InsuranceDetails/:insuranceId" component={InsuranceDetailsContainer}/>
+          <Route path="/InsuranceDetails/:insuranceId" component={InsuranceDetailsPage}/>
         </div>
       </Router>
     );

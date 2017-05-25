@@ -1,8 +1,8 @@
 import React from 'react';
 import axios from 'axios';
-import { Table, Popover, Overlay } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
+import ApplicationStatusHistoryPopover from './ApplicationStatusHistoryPopover';
 
 export default class InsuranceDoctors extends React.Component {
     constructor(props) {
@@ -76,27 +76,6 @@ export default class InsuranceDoctors extends React.Component {
                         <span className="glyphicon glyphicon-info-sign" onMouseOver={(e) => this.showApplicationStatusHistory(e, insuranceDoctor)} onMouseLeave={() => this.setState({show: !this.state.show})}></span>
                         {this.props.applicationStatuses.find(a => a.applicationStatusId == columnText).applicationStatus}
                         
-                        <Overlay
-                            show={this.state.selectedApplicationStatusHistory === insuranceDoctor.doctorInsuranceId && this.state.show ? true : false}
-                            target={this.state.target}
-                            placement="top"
-                        >
-                        <Popover  id="popover-contained" title="Application Status History">
-                            <table className="table">
-                                <thead>
-                                    <tr className="header">
-                                        <th>Application Status</th>
-                                        <th>Assigned Date</th>
-                                        <th>Assigned By</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {insuranceDoctor.applicationStatusHistory.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
-                                        insuranceDoctor.applicationStatusHistory.map((a, i) => this.createHistoryRow(a, i))}
-                                </tbody>
-                            </table>
-                        </Popover>
-                        </Overlay>
                     </p> 
                 </div> : <p>{columnText}</p>;
         }

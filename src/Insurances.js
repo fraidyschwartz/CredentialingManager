@@ -1,9 +1,8 @@
 import React from 'react';
 import axios from 'axios';
-import { Button, Modal, Form, FormGroup, ControlLabel, FormControl, Checkbox, Table, Alert } from 'react-bootstrap';
+import { Button, Modal, Form, FormGroup, ControlLabel, FormControl, Checkbox, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-//import swal from 'sweetalert2';
-import SweetAlert from 'sweetalert-react'; // eslint-disable-line import/no-extraneous-dependencies
+import SweetAlert from 'sweetalert-react';
 import 'sweetalert/dist/sweetalert.css';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 
@@ -18,10 +17,10 @@ export default class Insurances extends React.Component {
                 address2: "",
                 city: "",
                 state: "",
-                zip: 0,
+                zip: "",
                 fax: "",
                 email: "",
-                groupContractNumber: 0,
+                groupContractNumber: "",
                 notes: "",
                 necessaryDocs: ""
             }, 
@@ -30,8 +29,15 @@ export default class Insurances extends React.Component {
             facilities: [],
             showModal: false,
             selectedRow: null,
-            show: false,
-            alert: null,
+            alert: {
+                show: false,
+                type: null,
+                title: '',
+                text: '',
+                onConfirm: null,
+                confirmBtnText: 'OK',
+                showCancel: false
+            },
         }
         this.close = this.close.bind(this);
         this.open = this.open.bind(this);
@@ -42,14 +48,13 @@ export default class Insurances extends React.Component {
     async componentDidMount() {
         let insurances = await axios.get('/api/insurances/allinsurances');
         let facilities = await axios.get('api/doctors/allfacilities');
-        this.setState({insurances: insurances.data});
-        this.setState({facilities: facilities.data});
+        this.setState({insurances: insurances.data, facilities: facilities.data});
     }
 
     createInsuranceRow(insurance)
     {
         return(
-            <tr key={insurance.insuranceId} className={this.state.selectedRow === insurance.insuranceId ? "rowSelected" : null} onClick={this.selectRow.bind(this, insurance.insuranceId)}>
+            <tr key={insurance.insuranceId} className={this.state.selectedRow === insurance.insuranceId ? "rowSelected" : null} onClick={this.selectRow.bind(this, insurance)}>
                 <td className="hidden">{insurance.insuranceId}</td>
                 <td className="link"><Link to={`/InsuranceDetails/${insurance.insuranceId}`}>{insurance.name}</Link></td>
                 <td>{insurance.address1}</td>
@@ -71,48 +76,43 @@ export default class Insurances extends React.Component {
     }
 
     open() {
-        this.setState({ showModal: true });
+        this.setState({ showModal: true, insurance: {insuranceId: 0} });
     }
 
     closeAlert() {
-        console.log('change alert to null')
-        this.setState({ alert: null, show: false });
+        this.setState({ alert: {show: false,
+                                type: null,
+                                title: '',
+                                text: '',
+                                onConfirm: null,
+                                confirmBtnText: 'OK',
+                                showCancel: false}});
     }
 
     async createInsurance(e) {
         e.preventDefault();
         await axios.post('/api/insurances/newinsurance', {insurance: this.state.insurance, insuranceFacilities: this.state.insuranceFacilities});
         let insurances = await axios.get('/api/insurances/allinsurances');
-        this.setState({insurances: insurances.data, showModal: false});
+        this.setState({insurances: insurances.data, showModal: false, alert: {show: true, type: "success", title: 'Insurance Created Successfully!', text: '', onConfirm: this.closeAlert, showCancel: false}});
     }
 
-    async selectRow(insuranceId) {
+    selectRow(insurance) {
         event.preventDefault();
-        if(this.state.selectedRow === insuranceId)
+        if(this.state.selectedRow === insurance.insuranceId)
         {
             return this.setState({selectedRow: null});
         }
         
-        this.setState({selectedRow: insuranceId});
+        this.setState({selectedRow: insurance.insuranceId, insurance: insurance});
     }
 
     async deleteInsurance() {
         event.preventDefault();
-        await this.setState({show: true});
-        let alert = <SweetAlert
-            show={this.state.show}
-            title="Demo"
-            html
-            text="test"
-            onConfirm={this.closeAlert}
-        />
-        return this.setState({alert: alert});
-
-        // event.preventDefault();
-        // let insuranceId = this.state.selectedRow;
-        // await axios.post('/api/insurances/deleteinsurance', {insuranceId: insuranceId});
-        // let insurances = await axios.get('/api/insurances/allinsurances');
-        // this.setState({selectedRow: null, insurances: insurances.data});
+        let insuranceId = this.state.selectedRow;
+        await axios.post('/api/insurances/deleteinsurance', {insuranceId: insuranceId});
+        let insurances = await axios.get('/api/insurances/allinsurances');
+        this.setState({selectedRow: null, insurances: insurances.data});
+        this.closeAlert();
     }
 
     changeHandler(e) {
@@ -136,22 +136,16 @@ export default class Insurances extends React.Component {
     }
 
     render() {
-        // let alert;
-        //     console.log(this.state.alert)
-        // if(this.state.alert != null) {
-        //     console.log('hi')
-        //     alert = this.state.alert;
-        // }
-        // else {
-        //     alert = null;
-        // }
         return (
             <div>
                 <h3 className="header">Insurances</h3>
                 <hr/>
                 <div className="btn-group pull-right">
                     <button className="btn" onClick={this.open}>New</button>
-                    <button className="btn" disabled={this.state.selectedRow === null ? true : false} onClick={this.deleteInsurance}>Delete</button>
+                    <button className="btn" disabled={this.state.selectedRow === null ? true : false} 
+                        onClick={() => this.setState({alert: {show: true, type: "warning", title: 'Are you sure you want to delete this insurance?', text: this.state.insurance.name + ' will also be deleted from all associated doctors. Are you sure you want to continue?', onConfirm: this.deleteInsurance, confirmBtnText: 'Continue', showCancel: true}})}>
+                        Delete
+                    </button>
                     <ReactHTMLTableToExcel
                         id="test-table-xls-button"
                         className="btn"
@@ -184,13 +178,17 @@ export default class Insurances extends React.Component {
                 </Table>
                 
                 <SweetAlert
-                    show={this.state.show}
-                    title="Demo"
+                    show={this.state.alert.show}
+                    title={this.state.alert.title}
                     html
-                    text="test"
-                    onConfirm={this.closeAlert}
+                    text={this.state.alert.text}
+                    type={this.state.alert.type}
+                    onConfirm={this.state.alert.onConfirm}
+                    showConfirmButton={true}
+                    confirmButtonText={this.state.alert.confirmBtnText}
+                    showCancelButton={this.state.alert.showCancel}
+                    onCancel={this.closeAlert}
                 />
-                {/*{this.state.alert}*/}
 
                 <Modal show={this.state.showModal} onHide={this.close}>
                     <Form onSubmit={(e) => this.createInsurance(e)}>

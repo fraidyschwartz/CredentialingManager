@@ -2,6 +2,8 @@ import React from 'react';
 import axios from 'axios';
 import { Button, Modal, Form, FormGroup, ControlLabel, FormControl, Table } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import SweetAlert from 'sweetalert-react';
+import 'sweetalert/dist/sweetalert.css';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 
 export default class Doctors extends React.Component {
@@ -12,10 +14,9 @@ export default class Doctors extends React.Component {
                 doctorId: 0,
                 name: "",
                 credentials: "",
-                ssn: "",
-                status: "",
-                facility: "",
-                department: "",
+                status: 1,
+                facility: null,
+                department: null,
                 notes: ""
             }, 
             doctors: [],
@@ -23,9 +24,19 @@ export default class Doctors extends React.Component {
             departments: [],
             showModal: false,
             selectedRow: null,
+            alert: {
+                show: false,
+                type: null,
+                title: '',
+                text: '',
+                onConfirm: null,
+                confirmBtnText: 'OK',
+                showCancel: false
+            },
         }
         this.close = this.close.bind(this);
         this.open = this.open.bind(this);
+        this.closeAlert = this.closeAlert.bind(this);
         this.deleteDoctor = this.deleteDoctor.bind(this);
     }
 
@@ -33,15 +44,13 @@ export default class Doctors extends React.Component {
         let doctors = await axios.get('/api/doctors/alldoctors');
         let facilities = await axios.get('api/doctors/allfacilities');
         let departments = await axios.get('api/doctors/alldepartments');
-        this.setState({doctors: doctors.data});
-        this.setState({facilities: facilities.data});
-        this.setState({departments: departments.data});
+        this.setState({doctors: doctors.data, facilities: facilities.data, departments: departments.data});
     }
 
     createDoctorRow(doctor)
     {
         return(
-            <tr key={doctor.doctorId} className={this.state.selectedRow === doctor.doctorId ? "rowSelected" : null} onClick={this.selectRow.bind(this, doctor.doctorId)}>
+            <tr key={doctor.doctorId} className={this.state.selectedRow === doctor.doctorId ? "rowSelected" : null} onClick={this.selectRow.bind(this, doctor)}>
                 <td className="hidden">{doctor.doctorId}</td>
                 <td className="link"><Link to={`/DoctorDetails/${doctor.doctorId}`}>{doctor.name}, {doctor.credentials}</Link></td>
                 <td>{doctor.facility}</td>
@@ -57,25 +66,33 @@ export default class Doctors extends React.Component {
     }
 
     open() {
-        this.setState({ showModal: true });
+        this.setState({ showModal: true, doctor: {doctorId: 0} });
+    }
+
+    closeAlert() {
+        this.setState({ alert: {show: false,
+                                type: null,
+                                title: '',
+                                text: '',
+                                onConfirm: null,
+                                confirmBtnText: 'OK',
+                                showCancel: false}});
     }
 
     async createDoctor(e) {
         e.preventDefault();
         await axios.post('/api/doctors/newdoctor', this.state.doctor);
         let doctors = await axios.get('/api/doctors/alldoctors');
-        this.setState({doctors: doctors.data});
-        this.setState({showModal: false});
+        this.setState({doctors: doctors.data, showModal: false, alert: {show: true, type: "success", title: 'Doctor Created Successfully!', text: '', onConfirm: this.closeAlert, confirmBtnText: 'OK', showCancel: false}});
     }
 
-    async selectRow(doctorId) {
+    selectRow(doctor) {
         event.preventDefault();
-        if(this.state.selectedRow === doctorId)
+        if(this.state.selectedRow === doctor.doctorId)
         {
             return this.setState({selectedRow: null});
         }
-        
-        this.setState({selectedRow: doctorId});
+        this.setState({selectedRow: doctor.doctorId, doctor: doctor});
     }
 
     async deleteDoctor() {
@@ -85,6 +102,7 @@ export default class Doctors extends React.Component {
         this.setState({selectedRow: null});
         let doctors = await axios.get('/api/doctors/alldoctors');
         this.setState({doctors: doctors.data});
+        this.closeAlert();
     }
 
     changeHandler(e) {
@@ -100,7 +118,10 @@ export default class Doctors extends React.Component {
                 <hr/>
                 <div className="btn-group pull-right">
                     <button className="btn" onClick={this.open}>New</button>
-                    <button className="btn" disabled={this.state.selectedRow === null ? true : false} onClick={this.deleteDoctor}>Delete</button>
+                    <button className="btn" disabled={this.state.selectedRow === null ? true : false} 
+                        onClick={() => this.setState({alert: {show: true, type: "warning", title: 'Are you sure you want to delete this doctor?', text: this.state.doctor.name + ' will also be deleted from all associated insurances. Are you sure you want to continue?', onConfirm: this.deleteDoctor, confirmBtnText: 'Continue', showCancel: true}})}>
+                        Delete
+                    </button>
                     <ReactHTMLTableToExcel
                         id="test-table-xls-button"
                         className="btn"
@@ -125,6 +146,19 @@ export default class Doctors extends React.Component {
                             this.state.doctors.map(d => this.createDoctorRow(d))}
                     </tbody>
                 </Table>
+                
+                <SweetAlert
+                    show={this.state.alert.show}
+                    title={this.state.alert.title}
+                    html
+                    text={this.state.alert.text}
+                    type={this.state.alert.type}
+                    onConfirm={this.state.alert.onConfirm}
+                    showConfirmButton={true}
+                    confirmButtonText={this.state.alert.confirmBtnText}
+                    showCancelButton={this.state.alert.showCancel}
+                    onCancel={this.closeAlert}
+                />
 
                 <Modal show={this.state.showModal} onHide={this.close}>
                     <Form onSubmit={(e) => this.createDoctor(e)}>
@@ -139,10 +173,6 @@ export default class Doctors extends React.Component {
                             <FormGroup>
                                 <ControlLabel>Credentials</ControlLabel>
                                 <FormControl name="credentials" onChange={(e) => this.changeHandler(e)} type="text"></FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>SSN</ControlLabel>
-                                <FormControl name="ssn" onChange={(e) => this.changeHandler(e)} type="text"></FormControl>
                             </FormGroup>
                             <FormGroup>
                                 <ControlLabel>Facility</ControlLabel>
@@ -163,7 +193,7 @@ export default class Doctors extends React.Component {
                                 <FormControl name="status" componentClass="select" onChange={(e) => this.changeHandler(e)} >
                                     <option value="null">Please Select...</option>   
                                     <option value="1">Active</option> 
-                                    <option value="0">InActive</option> 
+                                    <option value="0">Inactive</option> 
                                 </FormControl>
                             </FormGroup>
                             <FormGroup>

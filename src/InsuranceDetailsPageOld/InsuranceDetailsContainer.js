@@ -1,9 +1,8 @@
 import React from 'react';
 import axios from 'axios';
-import InsuranceDetails from './InsuranceDetails';
+import InsuranceDetailsTest from './InsuranceDetailsTest';
 import InsuranceDoctors from './InsuranceDoctors';
 import InsuranceContacts from './InsuranceContacts';
-import InsuranceContactAddNewModal from './InsuranceContactAddNewModal';
 
 export default class InsuranceDetailsContainer extends React.Component {
     constructor() {
@@ -11,24 +10,26 @@ export default class InsuranceDetailsContainer extends React.Component {
         this.state = {
             insurance: {
                 insuranceId: 0,
-                name: null,
-                address1: null,
-                address2: null,
-                city: null,
-                state: null,
-                zip: null,
-                fax: null,
-                email: null,
-                groupContractNumber: null,
-                notes: null,
-                necessaryDocs: null
+                name: "",
+                address1: "",
+                address2: "",
+                city: "",
+                state: "",
+                zip: "",
+                fax: "",
+                email: "",
+                groupContractNumber: "",
+                notes: "",
+                necessaryDocs: ""
             },
             insuranceFacilities: [],
             facilities: [],
             insuranceContacts: [],
             doctorsOnInsurance: [],
             applicationStatuses: [],
-            disableFormControls: true
+            disableFormControls: true,
+            numbers: [1,2,3],
+            chosen: [],
         }
         this.makeFormEditable = this.makeFormEditable.bind(this);
         this.changeHandler = this.changeHandler.bind(this);
@@ -42,6 +43,14 @@ export default class InsuranceDetailsContainer extends React.Component {
         let insuranceDetails = await axios.get('/api/insurances/getinsurance?insuranceId=' + this.props.match.params.insuranceId);
         let facilities = await axios.get('/api/doctors/allfacilities');
         let applicationStatuses = await axios.get('/api/doctors/allapplicationstatuses');
+        // let facilityList = [];
+        // facilities.data.map(f => {
+        //     f.selected = false;
+        //     if(insuranceDetails.data.insuranceFacilities.includes(f.facilityId)) {
+        //         f.selected = true;
+        //     }
+        //     facilityList.push(f);
+        // })
         this.setState({ insurance: insuranceDetails.data.insurance, 
                         insuranceFacilities: insuranceDetails.data.insuranceFacilities,
                         facilities: facilities.data, 
@@ -60,28 +69,42 @@ export default class InsuranceDetailsContainer extends React.Component {
         this.setState({insurance: insuranceDetails.data.insurance, disableFormControls: true});
     }
 
-    changeHandler(e) {
-        e.preventDefault();
-        let insurance = this.state.insurance;
-        insurance[e.target.name] = e.target.value;
-        this.setState({insurance});
-    }
+    // changeHandler(e) {
+    //     e.preventDefault();
+    //     let insurance = this.state.insurance;
+    //     insurance[e.target.name] = e.target.value;
+    //     this.setState({insurance});
+    // }
 
-    checkboxHandler(e) {
-        e.preventDefault();
-        let facilities = this.state.insuranceFacilities;
+  checkboxHandler(e) {
+    let chosen = this.state.chosen;
+    chosen.push(e.target.value);
+    this.setState({ chosen })
+  }
 
-        if(e.target.checked) {
-            facilities.push(+e.target.value);
-            e.target.checked = true;
-        }
-        else {
-            let index = facilities.indexOf(+e.target.value);
-            facilities.splice(index, 1);
-            e.target.checked = false;
-        }
-        this.setState({insuranceFacilities: facilities});
-    }
+    // checkboxHandler(e) {
+    //     // e.preventDefault();
+    //     // let facilities = this.state.facilities;
+
+    //     // if(e.target.checked) {
+    //     //     facilities.find(f => f.facilityId == e.target.value).selected = true;
+    //     // }
+    //     // else {
+    //     //     facilities.find(f => f.facilityId == e.target.value).selected = false;
+    //     // }
+
+    //     e.preventDefault();
+    //     let facilities = this.state.insuranceFacilities;
+
+    //     if(e.target.checked) {
+    //         facilities.push(+e.target.value);
+    //     }
+    //     else {
+    //         let index = facilities.indexOf(+e.target.value);
+    //         facilities.splice(index, 1);
+    //     }
+    //     this.setState({insuranceFacilities: facilities});
+    // }
 
     async save() {
         event.preventDefault();
@@ -106,7 +129,11 @@ export default class InsuranceDetailsContainer extends React.Component {
                     <div>
                         <h3>{this.state.insurance.name} Info</h3>
                         <hr />
-                        <InsuranceDetails insurance={this.state.insurance}
+                        <InsuranceDetailsTest 
+                            chosen={this.state.chosen}
+                            handler={this.checkboxHandler}
+                            numbers={this.state.numbers} />
+                        {/*<InsuranceDetails insurance={this.state.insurance}
                             insuranceFacilities={this.state.insuranceFacilities}
                             facilities={this.state.facilities}
                             departments={this.state.departments} 
@@ -115,15 +142,17 @@ export default class InsuranceDetailsContainer extends React.Component {
                             cancel={this.cancel}
                             handler={this.changeHandler}
                             checkboxHandler={this.checkboxHandler}
-                            save={this.save}/>
+                            save={this.save}/>*/}
 
                         <br />
+
                         <InsuranceDoctors insurances={this.state.doctorsOnInsurance}
                             applicationStatuses={this.state.applicationStatuses}
                             refresh={this.refreshInsuranceDoctors}
                             insurance={this.state.insurance.name}/>
-
+                        
                         <br />
+
                         <InsuranceContacts insuranceContacts={this.state.insuranceContacts}
                             insuranceId={this.props.match.params.insuranceId}
                             refresh={this.refreshInsuranceContacts}

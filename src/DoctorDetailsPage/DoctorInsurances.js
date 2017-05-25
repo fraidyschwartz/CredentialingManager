@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import { Table, Popover, Overlay } from 'react-bootstrap';
+import { Popover, Overlay } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 

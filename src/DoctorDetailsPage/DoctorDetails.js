@@ -7,7 +7,7 @@ export default function DoctorDetails(props) {
             <div className="clearfix">
                 <div className="btn-group pull-right">
                     <button className="btn" onClick={props.disableFormControls === true ? props.makeFormEditable : props.cancel}>{props.disableFormControls === true ? "Edit" : "Cancel"}</button>
-                    <button className="btn" onClick={props.save} disabled={props.disableFormControls}>Save</button>
+                    <button className="btn" onClick={props.confirm} disabled={props.disableFormControls}>Save</button>
                 </div>
             </div>
             <Form>
@@ -20,29 +20,25 @@ export default function DoctorDetails(props) {
                     <FormControl name="credentials" type="text" value={props.doctor.credentials} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
                 </FormGroup>
                 <FormGroup>
-                    <ControlLabel>SSN</ControlLabel>
-                    <FormControl name="ssn" type="text" value={props.doctor.ssn} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
-                </FormGroup>
-                <FormGroup>
                     <ControlLabel>Facility</ControlLabel>
-                    <FormControl name="facility" type="select" componentClass="select" value={props.doctor.facility} disabled={props.disableFormControls} onChange={props.handler}>
+                    <FormControl name="facility" type="select" componentClass="select" value={props.doctor.facility || undefined} disabled={props.disableFormControls} onChange={props.handler}>
                         <option value="null">Please Select...</option>                                     
                         {props.facilities.map(f => <option key={f.facilityId} value={f.facilityId}>{f.facility}</option>)}
                     </FormControl>
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Department</ControlLabel>                                  
-                    <FormControl name="department" componentClass="select" value={props.doctor.department} disabled={props.disableFormControls} onChange={props.handler}>
+                    <FormControl name="department" componentClass="select" value={props.doctor.department || undefined} disabled={props.disableFormControls} onChange={props.handler}>
                         <option value="null">Please Select...</option>   
                         {props.departments.map(d => <option key={d.departmentId} value={d.departmentId}>{d.department}</option>)}                                    
                     </FormControl>
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Status</ControlLabel>
-                    <FormControl name="status" componentClass="select" value={props.doctor.status} disabled={props.disableFormControls} onChange={props.handler}>
+                    <FormControl name="status" componentClass="select" value={props.doctor.status || undefined} disabled={props.disableFormControls} onChange={props.handler}>
                         <option value="null">Please Select...</option>   
                         <option value="1">Active</option> 
-                        <option value="0">InActive</option> 
+                        <option value="0">Inactive</option> 
                     </FormControl>
                 </FormGroup>
                 <FormGroup>

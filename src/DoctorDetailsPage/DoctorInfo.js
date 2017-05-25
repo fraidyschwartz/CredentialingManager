@@ -20,10 +20,6 @@ export default function DoctorInfo(props) {
                     <FormControl name="credentials" type="text" value={props.doctor.credentials} disabled={props.editable}></FormControl>
                 </FormGroup>
                 <FormGroup>
-                    <ControlLabel>SSN</ControlLabel>
-                    <FormControl name="ssn" type="text" value={props.doctor.ssn} disabled={props.editable}></FormControl>
-                </FormGroup>
-                <FormGroup>
                     <ControlLabel>Facility</ControlLabel>
                     <FormControl name="facility" type="select" componentClass="select" value={props.doctor.facility} disabled={props.editable}>
                         <option value="null">Please Select...</option>                                     
@@ -42,7 +38,7 @@ export default function DoctorInfo(props) {
                     <FormControl name="status" componentClass="select" value={props.doctor.status} disabled={props.editable}>
                         <option value="null">Please Select...</option>   
                         <option value="1">Active</option> 
-                        <option value="0">InActive</option> 
+                        <option value="0">Inactive</option> 
                     </FormControl>
                 </FormGroup>
                 <FormGroup>

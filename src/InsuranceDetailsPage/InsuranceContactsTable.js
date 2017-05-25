@@ -3,21 +3,22 @@ import axios from 'axios';
 import InsuranceContactAddNewModal from './InsuranceContactAddNewModal';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
 
-export default class InsuranceContacts extends React.Component {
-    constructor(props) {
-        super(props);
+export default class InsuranceContactsTable extends React.Component {
+    constructor() {
+        super();
         this.state = {
             insuranceContact: {
                 insuranceContactId: 0,
-                insuranceId: props.insuranceId,
+                insuranceId: 0,
                 title: '',
                 firstName: '',
                 lastName: '',
                 phone: '',
-                ext: 0,
+                ext: '',
                 fax: '',
                 email: '',
             },
+            contacts: [],
             selectedRow: null,
             selectedColumn: null,
             tabIndex: 0,
@@ -31,15 +32,25 @@ export default class InsuranceContacts extends React.Component {
         this.deleteInsuranceContact = this.deleteInsuranceContact.bind(this);
     }
 
+    componentDidMount() {
+        this.getInsuranceContact();
+        this.setState({insuranceContact : {insuranceId : this.props.insuranceId}});
+    }
+
+    async getInsuranceContact() {
+        let contacts = await axios.get('/api/insurances/getinsurancecontacts?insuranceId=' + this.props.insuranceId);
+        this.setState({contacts: contacts.data})
+    }
+
     close() {
         this.setState({ showModal: false });
     }
 
     open() {
-        this.setState({ showModal: true });
+        this.setState({ showModal: true, insuranceContact: {insuranceContactId: 0, insuranceId: this.props.insuranceId}});
     }
 
-    async changeHandler(e) {
+    changeHandler(e) {
         let insuranceContact = this.state.insuranceContact;
         insuranceContact[e.target.name] = e.target.value === '' ? null : e.target.value;
         this.setState({insuranceContact: insuranceContact, anyChanges: true});
@@ -48,22 +59,21 @@ export default class InsuranceContacts extends React.Component {
     async onBlur() {
         if(this.state.anyChanges) {
             await axios.post('/api/insurances/editinsurancecontact', this.state.insuranceContact);
-            this.props.refresh();
+            this.getInsuranceContact();
         }
     }
 
     async createInsuranceContact(e) {
         e.preventDefault();
         await axios.post('/api/insurances/newinsurancecontact', this.state.insuranceContact);
-        this.props.refresh();
+        this.getInsuranceContact();
         this.close();
     }
 
     async deleteInsuranceContact() {
         event.preventDefault();
-        let insuranceContactId = this.state.selectedRow;
-        await axios.post('/api/insurances/deleteinsurancecontact', {insuranceContactId});
-        this.props.refresh();
+        await axios.post('/api/insurances/deleteinsurancecontact', {insuranceContactId : this.state.selectedRow});
+        this.getInsuranceContact();
         this.setState({selectedRow: null});
     }
 
@@ -74,27 +84,7 @@ export default class InsuranceContacts extends React.Component {
         let columnText = insuranceContact[column] || '';
 
         if(this.state.selectedRow === insuranceContact.insuranceContactId && this.state.selectedColumn === column) {
-            if(column === "title") {
-                render = <input type="text" name="title" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "firstName") {
-                render = <input type="text" name="firstName" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "lastName") {
-                render = <input type="text" name="lastName" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "phone") {
-                render = <input type="text" name="phone" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "ext") {
-                render = <input type="text" name="ext" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "fax") {
-                render = <input type="text" name="fax" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
-            else if(column === "email") {
-                render = <input type="text" name="email" onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
-            }
+                render = <input type="text" name={column} onChange={(e) => this.changeHandler(e)} onBlur={() => this.onBlur()} defaultValue={columnText} className="form-control" autoFocus={true}/>
         }
 
         else {
@@ -160,8 +150,8 @@ export default class InsuranceContacts extends React.Component {
                         </tr>
                     </thead>
                     <tbody>
-                        {this.props.insuranceContacts.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
-                            this.props.insuranceContacts.map(i => this.createInsuranceContactRow(i))}
+                        {this.state.contacts.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
+                            this.state.contacts.map(i => this.createInsuranceContactRow(i))}
                     </tbody>
                 </table>
 
