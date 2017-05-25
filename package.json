@@ -9,12 +9,10 @@
     "react": "^15.5.4",
     "react-bootstrap": "^0.31.0",
     "react-bootstrap-modal": "^3.0.1",
-    "react-bootstrap-table": "^3.3.0",
     "react-dom": "^15.5.4",
     "react-html-table-to-excel": "^2.0.0",
     "react-router-dom": "^4.1.1",
-    "sweetalert-react": "^0.4.10",
-    "sweetalert2": "^6.6.3"
+    "sweetalert-react": "^0.4.10"
   },
   "devDependencies": {
     "react-scripts": "0.9.5"
