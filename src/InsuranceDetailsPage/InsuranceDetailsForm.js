@@ -44,6 +44,12 @@ export default class InsuranceDetailsForm extends React.Component {
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Facilities</ControlLabel>  
+                    {console.log(this.props.facilities)}
+                    {/*{this.props.facilities.map(f =>  <input type="checkbox" key={f.facilityId} 
+                        value={f.facilityId} 
+                        checked={f.selected} 
+                        disabled={this.props.disableFormControls} 
+                        onClick={this.props.checkboxHandler.bind(this)}/>)}*/}
                     {this.props.facilities.map(f => <InsuranceFacilityCheckbox key={f.facilityId} facility={f} 
                         checkboxHandler={this.props.checkboxHandler}  disableFormControls={this.props.disableFormControls}/>)}
                 </FormGroup>

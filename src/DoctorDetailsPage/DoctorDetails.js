@@ -13,11 +13,11 @@ export default function DoctorDetails(props) {
             <Form>
                 <FormGroup>
                     <ControlLabel>Name</ControlLabel>
-                    <FormControl name="name" type="text" value={props.doctor.name} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
+                    <FormControl name="name" type="text" value={props.doctor.name || ""} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Credentials</ControlLabel>
-                    <FormControl name="credentials" type="text" value={props.doctor.credentials} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
+                    <FormControl name="credentials" type="text" value={props.doctor.credentials || ""} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Facility</ControlLabel>
@@ -43,7 +43,7 @@ export default function DoctorDetails(props) {
                 </FormGroup>
                 <FormGroup>
                     <ControlLabel>Notes</ControlLabel>
-                    <FormControl name="notes" componentClass="textarea" value={props.doctor.notes} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
+                    <FormControl name="notes" componentClass="textarea" value={props.doctor.notes || ""} disabled={props.disableFormControls} onChange={props.handler}></FormControl>
                 </FormGroup>
             </Form>
         </div>

@@ -1,10 +1,12 @@
 import React from 'react';
 import axios from 'axios';
-import { Button, Modal, Form, FormGroup, ControlLabel, FormControl, Table } from 'react-bootstrap';
+import { Table, InputGroup, DropdownButton, FormControl, Button} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import SweetAlert from 'sweetalert-react';
 import 'sweetalert/dist/sweetalert.css';
 import ReactHTMLTableToExcel from 'react-html-table-to-excel';
+import DoctorAddNewModal from './DoctorAddNewModal';
+import SortableTable from './SortableTable';
 
 export default class Doctors extends React.Component {
     constructor() {
@@ -24,6 +26,8 @@ export default class Doctors extends React.Component {
             departments: [],
             showModal: false,
             selectedRow: null,
+            sortDir: null,
+            sortBy: null,
             alert: {
                 show: false,
                 type: null,
@@ -33,18 +37,32 @@ export default class Doctors extends React.Component {
                 confirmBtnText: 'OK',
                 showCancel: false
             },
+            headers: [
+                {columnName: 'doctorId', displayName: 'Doctor ID', hidden: true},
+                {columnName: 'name', displayName: 'Name', hidden: false},
+                {columnName: 'facility', displayName: 'Facility', hidden: false},
+                {columnName: 'department', displayName: 'Department', hidden: false},
+                {columnName: 'status', displayName: 'Status', hidden: false},
+                {columnName: 'notes', displayName: 'Notes', hidden: true},
+            ]
         }
         this.close = this.close.bind(this);
         this.open = this.open.bind(this);
         this.closeAlert = this.closeAlert.bind(this);
         this.deleteDoctor = this.deleteDoctor.bind(this);
+        this.changeHandler = this.changeHandler.bind(this);
+        this.createDoctor = this.createDoctor.bind(this);
+        this.sortColumn = this.sortColumn.bind(this);
+        this.createDoctorRow = this.createDoctorRow.bind(this);
     }
 
-    async componentDidMount() {
+    async componentWillMount() {
         let doctors = await axios.get('/api/doctors/alldoctors');
         let facilities = await axios.get('api/doctors/allfacilities');
         let departments = await axios.get('api/doctors/alldepartments');
-        this.setState({doctors: doctors.data, facilities: facilities.data, departments: departments.data});
+        this.setState({ doctors: doctors.data, 
+                        facilities: facilities.data, 
+                        departments: departments.data});
     }
 
     createDoctorRow(doctor)
@@ -81,9 +99,17 @@ export default class Doctors extends React.Component {
 
     async createDoctor(e) {
         e.preventDefault();
-        await axios.post('/api/doctors/newdoctor', this.state.doctor);
-        let doctors = await axios.get('/api/doctors/alldoctors');
-        this.setState({doctors: doctors.data, showModal: false, alert: {show: true, type: "success", title: 'Doctor Created Successfully!', text: '', onConfirm: this.closeAlert, confirmBtnText: 'OK', showCancel: false}});
+        let newDoctor = await axios.post('/api/doctors/newdoctor', this.state.doctor);
+        this.state.doctors.push(newDoctor.data);
+        this.sortColumn(this.state.sortBy, true);  
+        this.setState({ showModal: false, 
+                        alert: {show: true, 
+                                type: "success", 
+                                title: 'Doctor Created Successfully!', 
+                                text: '', 
+                                onConfirm: this.closeAlert, 
+                                confirmBtnText: 'OK', 
+                                showCancel: false}});
     }
 
     selectRow(doctor) {
@@ -110,16 +136,78 @@ export default class Doctors extends React.Component {
         doctor[e.target.name] = e.target.value;
         this.setState({doctor});
     }
+    
+    sortColumn(column, calledOnRefresh) {
+        var sortDir = this.state.sortDir;
+        var sortBy = column;
+        if(sortBy === this.state.sortBy && !calledOnRefresh) {
+            sortDir = this.state.sortDir === 'ASC' ? 'DESC' : 'ASC';
+        }
+        else if(calledOnRefresh) {
+            sortDir = this.state.sortDir;
+        }
+        else {
+            sortDir = 'ASC';
+        }
+
+        var rows = this.state.doctors.slice();
+        rows.sort((a,b) => {
+            let valueA = a[sortBy] === null ? 0 : a[sortBy].toString().toLowerCase();
+            let valueB = b[sortBy] === null ? 0 : b[sortBy].toString().toLowerCase();
+
+            if(valueA === null){
+                return 1;
+            }
+            else if(valueB === null){
+                return -1;
+            }
+            else if(valueA === valueB){
+                return 0;
+            }
+            else if(sortDir === 'ASC') {
+                return valueA < valueB ? -1 : 1;
+            }
+            else if(sortDir === 'DESC') {
+                return valueA < valueB ? 1 : -1;
+            }
+        })
+        this.setState({sortBy, sortDir, doctors : rows});
+    }
 
     render() {
         return (
             <div>
                 <h3 className="header">Doctors</h3>               
                 <hr/>
+
+                {/*<div className="input-group">
+                    <input id="search-global" type="text" className="form-control" placeholder="Search..."/>
+                    <div className="input-group-btn">
+                        <button type="button" className="btn btn-default" name="dropdown-btn">
+                            <span className="caret"></span>
+                        </button>
+                            <div>
+                                <label>test</label>
+                            </div>
+                        {/*<DropdownButton id="dropdown-btn" title="">
+                            <div className="dropdown-menu dropdown-menu-right">
+                                <label>test</label>
+                            </div>
+                        </DropdownButton>
+                    </div>
+                </div>*/}
+
                 <div className="btn-group pull-right">
                     <button className="btn" onClick={this.open}>New</button>
-                    <button className="btn" disabled={this.state.selectedRow === null ? true : false} 
-                        onClick={() => this.setState({alert: {show: true, type: "warning", title: 'Are you sure you want to delete this doctor?', text: this.state.doctor.name + ' will also be deleted from all associated insurances. Are you sure you want to continue?', onConfirm: this.deleteDoctor, confirmBtnText: 'Continue', showCancel: true}})}>
+                    <button className="btn" 
+                        disabled={this.state.selectedRow === null ? true : false} 
+                        onClick={() => this.setState({alert: { show: true, 
+                                                               type: "warning", 
+                                                               title: 'Are you sure you want to delete this doctor?', 
+                                                               text: this.state.doctor.name + ' will also be deleted from all associated insurances. Are you sure you want to continue?', 
+                                                               onConfirm: this.deleteDoctor, 
+                                                               confirmBtnText: 'Continue', 
+                                                               showCancel: true }})}>
                         Delete
                     </button>
                     <ReactHTMLTableToExcel
@@ -130,23 +218,13 @@ export default class Doctors extends React.Component {
                         sheet="doctorsTable"
                         buttonText="Export to Excel"/>
                 </div>
-                <Table id='doctorsTable'>
-                    <thead>
-                        <tr className="header">
-                            <th className="hidden">DoctorId</th>
-                            <th>Name</th>
-                            <th>Facility</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th className="hidden">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {this.state.doctors.length === 0 ? <tr><td className="noDataRow" colSpan={"100%"}>No Data Available</td></tr> :
-                            this.state.doctors.map(d => this.createDoctorRow(d))}
-                    </tbody>
-                </Table>
-                
+
+                <SortableTable rows={this.state.doctors}
+                    tableName="doctorsTable"
+                    headers={this.state.headers}
+                    createRow={this.createDoctorRow} 
+                    sortColumn={this.sortColumn}/>
+                               
                 <SweetAlert
                     show={this.state.alert.show}
                     title={this.state.alert.title}
@@ -160,53 +238,12 @@ export default class Doctors extends React.Component {
                     onCancel={this.closeAlert}
                 />
 
-                <Modal show={this.state.showModal} onHide={this.close}>
-                    <Form onSubmit={(e) => this.createDoctor(e)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Add New Doctor</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                            <FormGroup>
-                                <ControlLabel>Name</ControlLabel>
-                                <FormControl name="name" required="required" onChange={(e) => this.changeHandler(e)} type="text"></FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Credentials</ControlLabel>
-                                <FormControl name="credentials" onChange={(e) => this.changeHandler(e)} type="text"></FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Facility</ControlLabel>
-                                <FormControl name="facility" componentClass="select" onChange={(e) => this.changeHandler(e)} >
-                                    <option value="null">Please Select...</option>                                     
-                                    {this.state.facilities.map(f => <option key={f.facilityId} value={f.facilityId}>{f.facility}</option>)}
-                                </FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Department</ControlLabel>                                  
-                                <FormControl name="department" componentClass="select" onChange={(e) => this.changeHandler(e)} >
-                                    <option value="null">Please Select...</option>   
-                                    {this.state.departments.map(d => <option key={d.departmentId} value={d.departmentId}>{d.department}</option>)}                                    
-                                </FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Status</ControlLabel>
-                                <FormControl name="status" componentClass="select" onChange={(e) => this.changeHandler(e)} >
-                                    <option value="null">Please Select...</option>   
-                                    <option value="1">Active</option> 
-                                    <option value="0">Inactive</option> 
-                                </FormControl>
-                            </FormGroup>
-                            <FormGroup>
-                                <ControlLabel>Notes</ControlLabel>
-                                <FormControl name="notes" componentClass="textarea" onChange={(e) => this.changeHandler(e)} ></FormControl>
-                            </FormGroup>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button type="submit">Save</Button>
-                        <Button onClick={this.close}>Cancel</Button>
-                    </Modal.Footer>
-                        </Form>
-                </Modal>
+                <DoctorAddNewModal showModal={this.state.showModal}
+                    facilities={this.state.facilities}
+                    departments={this.state.departments}
+                    close={this.close}
+                    createDoctor={this.createDoctor}
+                    changeHandler={this.changeHandler}/>
             </div>
         )
     }

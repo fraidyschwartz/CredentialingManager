@@ -52,8 +52,10 @@ tr th, tr td {
   display: none;
 }
 
-.btn {
-  margin: 5px;
+.btn:not([name=dropdown-btn]){
+/*.btn:not(.dropdown-toggle) {*/
+  margin: 4px;
+  margin-top: 10px;
   background-color: #105A5E;
   color: white;
 }
@@ -80,6 +82,17 @@ div.popover {
 
 span {
   padding-right: 5px;
+}
+
+span.glyphicon-sort {
+  display: none;
+  padding-left: 5px;
+  color: black;
+  opacity: .25;
+}
+
+th:hover > span {
+  display: inline;
 }
 
 @keyframes App-logo-spin {

@@ -37,7 +37,7 @@ export default class Insurances extends React.Component {
                 onConfirm: null,
                 confirmBtnText: 'OK',
                 showCancel: false
-            },
+            }
         }
         this.close = this.close.bind(this);
         this.open = this.open.bind(this);
@@ -93,7 +93,14 @@ export default class Insurances extends React.Component {
         e.preventDefault();
         await axios.post('/api/insurances/newinsurance', {insurance: this.state.insurance, insuranceFacilities: this.state.insuranceFacilities});
         let insurances = await axios.get('/api/insurances/allinsurances');
-        this.setState({insurances: insurances.data, showModal: false, alert: {show: true, type: "success", title: 'Insurance Created Successfully!', text: '', onConfirm: this.closeAlert, showCancel: false}});
+        this.setState({ insurances: insurances.data, 
+                        showModal: false, 
+                        alert: {show: true, 
+                                type: "success", 
+                                title: 'Insurance Created Successfully!', 
+                                text: '', 
+                                onConfirm: this.closeAlert, 
+                                showCancel: false}});
     }
 
     selectRow(insurance) {
@@ -143,7 +150,13 @@ export default class Insurances extends React.Component {
                 <div className="btn-group pull-right">
                     <button className="btn" onClick={this.open}>New</button>
                     <button className="btn" disabled={this.state.selectedRow === null ? true : false} 
-                        onClick={() => this.setState({alert: {show: true, type: "warning", title: 'Are you sure you want to delete this insurance?', text: this.state.insurance.name + ' will also be deleted from all associated doctors. Are you sure you want to continue?', onConfirm: this.deleteInsurance, confirmBtnText: 'Continue', showCancel: true}})}>
+                        onClick={() => this.setState({ alert: {show: true, 
+                                                       type: "warning", 
+                                                       title: 'Are you sure you want to delete this insurance?', 
+                                                       text: this.state.insurance.name + ' will also be deleted from all associated doctors. Are you sure you want to continue?', 
+                                                       onConfirm: this.deleteInsurance, 
+                                                       confirmBtnText: 'Continue', 
+                                                       showCancel: true}})}>
                         Delete
                     </button>
                     <ReactHTMLTableToExcel
@@ -251,7 +264,6 @@ export default class Insurances extends React.Component {
                     </Modal.Footer>
                         </Form>
                 </Modal>
-
             </div>
         )
     }
